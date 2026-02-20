@@ -10,8 +10,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { IEmployee } from "@employee-manager/specs";
 import EditEmployeeDialog from "./EditEmployeeDialog";
 import ConfirmDialog from "./ConfirmDialog";
-import { useAppDispatch, useAppSelector, editEmployee, deleteEmployee, fetchEmployees } from "../redux";
+import { useAppDispatch, useAppSelector, editEmployee, deleteEmployee, fetchEmployees, refreshEmployees } from "../redux";
 import { useDebounce } from "../hooks/useDebounce";
+import { useInterval } from "../hooks/useInterval";
 
 const formatSalary = (amount: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(amount);
 
@@ -35,6 +36,10 @@ export default function EmployeeTable() {
     dispatch(fetchEmployees({ search: debouncedSearch || undefined }));
     setPage(0);
   }, [dispatch, debouncedSearch]);
+
+  useInterval(() => {
+    dispatch(refreshEmployees({ search: debouncedSearch || undefined }));
+  }, 20000);
 
   const paginated = employees.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 

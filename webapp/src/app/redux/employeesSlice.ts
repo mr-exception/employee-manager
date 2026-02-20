@@ -44,6 +44,10 @@ export const deleteEmployee = createAsyncThunk(
   }
 );
 
+export const refreshEmployees = createAsyncThunk("employees/refresh", (params?: SearchEmployeesParams) =>
+  searchEmployees(params)
+);
+
 const addFetchCases = (builder: ActionReducerMapBuilder<EmployeesState>) => {
   builder
     .addCase(fetchEmployees.pending, (state) => {
@@ -79,6 +83,12 @@ const addDeleteCases = (builder: ActionReducerMapBuilder<EmployeesState>) => {
   });
 };
 
+const addRefreshCases = (builder: ActionReducerMapBuilder<EmployeesState>) => {
+  builder.addCase(refreshEmployees.fulfilled, (state, action) => {
+    state.data = action.payload.data;
+  });
+};
+
 const employeesSlice = createSlice({
   name: "employees",
   initialState,
@@ -88,6 +98,7 @@ const employeesSlice = createSlice({
     addCreateCases(builder);
     addEditCases(builder);
     addDeleteCases(builder);
+    addRefreshCases(builder);
   },
 });
 

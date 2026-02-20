@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Box, Button, Container, Typography } from "@mui/material";
+import { Box, Button, Container, IconButton, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { IEmployee } from "@employee-manager/specs";
 import EmployeeTable from "./components/EmployeeTable";
@@ -22,9 +22,9 @@ export default function Home() {
         <Typography variant="h5" component="h1" fontWeight={600}>
           Employees
         </Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setDialogOpen(true)}>
-          Add
-        </Button>
+        <IconButton onClick={() => setDialogOpen(true)}>
+          <AddIcon />
+        </IconButton>
       </Box>
       <EmployeeTable />
       <AddEmployeeDialog open={dialogOpen} onClose={() => setDialogOpen(false)} onSubmit={handleAdd} />
