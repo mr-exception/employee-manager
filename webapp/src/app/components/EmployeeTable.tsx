@@ -1,19 +1,14 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Box, IconButton, InputAdornment, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Tooltip, Typography } from "@mui/material";
+import { useState, useMemo, useEffect } from "react";
+import { Box, CircularProgress, IconButton, InputAdornment, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Tooltip, Typography } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { IEmployee } from "@employee-manager/specs";
 import EditEmployeeDialog from "./EditEmployeeDialog";
 import ConfirmDialog from "./ConfirmDialog";
-
-interface Props {
-  employees: IEmployee[];
-  onEdit: (updated: IEmployee) => void;
-  onDelete: (id: string) => void;
-}
+import { useAppDispatch, useAppSelector, editEmployee, deleteEmployee, fetchEmployees } from "../redux";
 
 const formatSalary = (amount: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(amount);
 
@@ -21,7 +16,14 @@ const formatDate = (ts: number) => new Intl.DateTimeFormat("en-US", { dateStyle:
 
 const ROWS_PER_PAGE_OPTIONS = [5, 10, 25];
 
-export default function EmployeeTable({ employees, onEdit, onDelete }: Props) {
+export default function EmployeeTable() {
+  const dispatch = useAppDispatch();
+  const { data: employees, loading, error } = useAppSelector((state) => state.employees);
+
+  useEffect(() => {
+    dispatch(fetchEmployees());
+  }, [dispatch]);
+
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -39,6 +41,22 @@ export default function EmployeeTable({ employees, onEdit, onDelete }: Props) {
     setSearch(e.target.value);
     setPage(0);
   };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Typography color="error" sx={{ py: 4 }}>
+        {error}
+      </Typography>
+    );
+  }
 
   return (
     <Box>
@@ -123,16 +141,13 @@ export default function EmployeeTable({ employees, onEdit, onDelete }: Props) {
         employee={editTarget}
         open={editTarget !== null}
         onClose={() => setEditTarget(null)}
-        onSubmit={(updated) => { onEdit(updated); setEditTarget(null); }}
+        onSubmit={(updated) => {
+          dispatch(editEmployee(updated));
+          setEditTarget(null);
+        }}
       />
 
-      <ConfirmDialog
-        open={deleteTarget !== null}
-        title="Remove Employee"
-        message={`Are you sure you want to remove ${deleteTarget?.name}? This action cannot be undone.`}
-        onConfirm={() => onDelete(deleteTarget!._id)}
-        onClose={() => setDeleteTarget(null)}
-      />
+      <ConfirmDialog open={deleteTarget !== null} title="Remove Employee" message={`Are you sure you want to remove ${deleteTarget?.name}? This action cannot be undone.`} onConfirm={() => dispatch(deleteEmployee(deleteTarget!._id))} onClose={() => setDeleteTarget(null)} />
     </Box>
   );
 }

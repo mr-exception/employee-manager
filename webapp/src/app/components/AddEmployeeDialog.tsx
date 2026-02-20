@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormHelperText, InputLabel, OutlinedInput, Stack } from "@mui/material";
 import { IEmployee } from "@employee-manager/specs";
+import { useModalContainer } from "../hooks/useModalContainer";
 
 type NewEmployee = Omit<IEmployee, "_id" | "createdAt" | "updatedAt">;
 
@@ -15,6 +16,7 @@ interface Props {
 const empty = { name: "", email: "", position: "", salary: "" };
 
 export default function AddEmployeeDialog({ open, onClose, onSubmit }: Props) {
+  const modalContainer = useModalContainer();
   const [form, setForm] = useState(empty);
 
   const set = (field: keyof typeof empty) => (e: React.ChangeEvent<HTMLInputElement>) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -33,7 +35,7 @@ export default function AddEmployeeDialog({ open, onClose, onSubmit }: Props) {
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm" container={modalContainer}>
       <DialogTitle>Add Employee</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>

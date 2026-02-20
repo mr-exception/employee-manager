@@ -36,7 +36,7 @@ export class EmployeeController {
     return this.createUseCase.execute(dto);
   }
 
-  @Patch(':id')
+  @Post(':id')
   edit(@Param('id') id: string, @Body() dto: EditEmployeeDto) {
     return this.editUseCase.execute(id, dto);
   }
