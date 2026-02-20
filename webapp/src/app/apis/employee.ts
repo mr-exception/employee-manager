@@ -14,10 +14,18 @@ export interface SearchEmployeesParams {
 export type CreateEmployeePayload = Omit<IEmployee, "_id" | "createdAt" | "updatedAt">;
 export type UpdateEmployeePayload = Omit<IEmployee, "_id" | "createdAt" | "updatedAt">;
 
-export const searchEmployees = (params?: SearchEmployeesParams): Promise<ICollection<IEmployee>> => client.get("/employee", { params }).then((res) => res.data);
+export function searchEmployees(params?: SearchEmployeesParams): Promise<ICollection<IEmployee>> {
+  return client.get("/employee", { params }).then((res) => res.data);
+}
 
-export const createEmployee = (payload: CreateEmployeePayload): Promise<IEmployee> => client.post("/employee", payload).then((res) => res.data);
+export function createEmployee(payload: CreateEmployeePayload): Promise<IEmployee> {
+  return client.post("/employee", payload).then((res) => res.data);
+}
 
-export const updateEmployee = (id: string, payload: UpdateEmployeePayload): Promise<IEmployee> => client.put(`/employee/${id}`, payload).then((res) => res.data);
+export function updateEmployee(id: string, payload: UpdateEmployeePayload): Promise<IEmployee> {
+  return client.post(`/employee/${id}`, payload).then((res) => res.data);
+}
 
-export const deleteEmployee = (id: string): Promise<void> => client.delete(`/employee/${id}`).then((res) => res.data);
+export function deleteEmployee(id: string): Promise<void> {
+  return client.delete(`/employee/${id}`).then((res) => res.data);
+}

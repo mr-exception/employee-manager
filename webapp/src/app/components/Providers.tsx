@@ -37,6 +37,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           <Box component="main" sx={{ mt: "64px" }}>
             {children}
           </Box>
+          <div id="modal-root" />
         </ThemeProvider>
       </AppRouterCacheProvider>
     </ReduxProvider>

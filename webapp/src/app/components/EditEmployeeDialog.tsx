@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, FormHelperText, InputLabel, OutlinedInput, Stack } from "@mui/material";
 import { IEmployee } from "@employee-manager/specs";
+import { useModalContainer } from "../hooks/useModalContainer";
 
 interface Props {
   employee: IEmployee | null;
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export default function EditEmployeeDialog({ employee, open, onClose, onSubmit }: Props) {
+  const modalContainer = useModalContainer();
   const [form, setForm] = useState({ name: "", email: "", position: "", salary: "" });
 
   useEffect(() => {
@@ -32,7 +34,7 @@ export default function EditEmployeeDialog({ employee, open, onClose, onSubmit }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" container={modalContainer}>
       <DialogTitle>Edit Employee</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
