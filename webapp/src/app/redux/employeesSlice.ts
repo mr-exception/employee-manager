@@ -6,6 +6,7 @@ import {
   updateEmployee as updateEmployeeApi,
   deleteEmployee as deleteEmployeeApi,
   CreateEmployeePayload,
+  SearchEmployeesParams,
 } from "../apis/employee";
 
 interface EmployeesState {
@@ -20,8 +21,8 @@ const initialState: EmployeesState = {
   error: null,
 };
 
-export const fetchEmployees = createAsyncThunk("employees/fetch", () =>
-  searchEmployees()
+export const fetchEmployees = createAsyncThunk("employees/fetch", (params?: SearchEmployeesParams) =>
+  searchEmployees(params)
 );
 
 export const addEmployee = createAsyncThunk(
