@@ -84,6 +84,16 @@ docker compose up --build
 | Webapp  | http://localhost:3001  |
 | MongoDB | localhost:27017        |
 
+## Seeding the Database
+
+Prefill the database with 25 sample employees:
+
+```bash
+npm run seed -w api
+```
+
+The script skips seeding if the collection already contains records.
+
 ## Building for Production
 
 ```bash
