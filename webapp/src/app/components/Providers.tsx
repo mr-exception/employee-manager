@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { Provider as ReduxProvider } from "react-redux";
+import { store } from "../redux";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import AppBar from "@mui/material/AppBar";
@@ -18,23 +20,25 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   const theme = useMemo(() => createTheme({ palette: { mode } }), [mode]);
 
   return (
-    <AppRouterCacheProvider>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <AppBar position="fixed" elevation={1}>
-          <Toolbar>
-            <Typography variant="h6" fontWeight={700} sx={{ flexGrow: 1 }}>
-              Employee Manager
-            </Typography>
-            <IconButton color="inherit" onClick={() => setMode((m) => (m === "light" ? "dark" : "light"))} aria-label="toggle theme">
-              {mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
-            </IconButton>
-          </Toolbar>
-        </AppBar>
-        <Box component="main" sx={{ mt: "64px" }}>
-          {children}
-        </Box>
-      </ThemeProvider>
-    </AppRouterCacheProvider>
+    <ReduxProvider store={store}>
+      <AppRouterCacheProvider>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <AppBar position="fixed" elevation={1}>
+            <Toolbar>
+              <Typography variant="h6" fontWeight={700} sx={{ flexGrow: 1 }}>
+                Employee Manager
+              </Typography>
+              <IconButton color="inherit" onClick={() => setMode((m) => (m === "light" ? "dark" : "light"))} aria-label="toggle theme">
+                {mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
+              </IconButton>
+            </Toolbar>
+          </AppBar>
+          <Box component="main" sx={{ mt: "64px" }}>
+            {children}
+          </Box>
+        </ThemeProvider>
+      </AppRouterCacheProvider>
+    </ReduxProvider>
   );
 }
