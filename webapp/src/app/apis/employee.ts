@@ -15,7 +15,10 @@ export type CreateEmployeePayload = Omit<IEmployee, "_id" | "createdAt" | "updat
 export type UpdateEmployeePayload = Omit<IEmployee, "_id" | "createdAt" | "updatedAt">;
 
 export function searchEmployees(params?: SearchEmployeesParams): Promise<ICollection<IEmployee>> {
-  return client.get("/employee", { params }).then((res) => res.data);
+  return new Promise((resolve) =>
+    // fake delay to demonstrate the loading state
+    setTimeout(() => resolve(client.get("/employee", { params }).then((res) => res.data)), 2500),
+  );
 }
 
 export function createEmployee(payload: CreateEmployeePayload): Promise<IEmployee> {

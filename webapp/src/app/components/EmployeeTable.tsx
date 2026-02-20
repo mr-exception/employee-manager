@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Box, CircularProgress, IconButton, InputAdornment, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Tooltip, Typography } from "@mui/material";
+import { Box, IconButton, InputAdornment, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Tooltip, Typography } from "@mui/material";
+import LoadingView from "./LoadingView";
+import ErrorView from "./ErrorView";
 import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -40,22 +42,6 @@ export default function EmployeeTable() {
     setSearch(e.target.value);
   };
 
-  if (loading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Typography color="error" sx={{ py: 4 }}>
-        {error}
-      </Typography>
-    );
-  }
-
   return (
     <Box>
       <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
@@ -77,6 +63,11 @@ export default function EmployeeTable() {
         />
       </Paper>
 
+      {loading ? (
+        <LoadingView message="Fetching employees…" />
+      ) : error ? (
+        <ErrorView message={error} />
+      ) : (
       <TableContainer component={Paper} elevation={2}>
         <Table>
           <TableHead>
@@ -134,6 +125,8 @@ export default function EmployeeTable() {
           }}
         />
       </TableContainer>
+
+      )}
 
       <EditEmployeeDialog
         employee={editTarget}
