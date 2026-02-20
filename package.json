@@ -4,13 +4,14 @@
   "private": true,
   "workspaces": [
     "api",
-    "webapp"
+    "webapp",
+    "packages/*"
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev --workspace=api\" \"npm run dev --workspace=webapp\"",
     "dev:api": "npm run dev --workspace=api",
     "dev:webapp": "npm run dev --workspace=webapp",
-    "build": "npm run build --workspace=api && npm run build --workspace=webapp",
+    "build": "npm run build --workspace=@employee-manager/specs && npm run build --workspace=api && npm run build --workspace=webapp",
     "lint": "npm run lint --workspace=api && npm run lint --workspace=webapp"
   },
   "devDependencies": {
