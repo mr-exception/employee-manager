@@ -6,6 +6,7 @@ import {
   updateEmployee as updateEmployeeApi,
   deleteEmployee as deleteEmployeeApi,
   CreateEmployeePayload,
+  SearchEmployeesParams,
 } from "../apis/employee";
 
 interface EmployeesState {
@@ -20,8 +21,8 @@ const initialState: EmployeesState = {
   error: null,
 };
 
-export const fetchEmployees = createAsyncThunk("employees/fetch", () =>
-  searchEmployees()
+export const fetchEmployees = createAsyncThunk("employees/fetch", (params?: SearchEmployeesParams) =>
+  searchEmployees(params)
 );
 
 export const addEmployee = createAsyncThunk(
@@ -41,6 +42,10 @@ export const deleteEmployee = createAsyncThunk(
     await deleteEmployeeApi(id);
     return id;
   }
+);
+
+export const refreshEmployees = createAsyncThunk("employees/refresh", (params?: SearchEmployeesParams) =>
+  searchEmployees(params)
 );
 
 const addFetchCases = (builder: ActionReducerMapBuilder<EmployeesState>) => {
@@ -78,6 +83,12 @@ const addDeleteCases = (builder: ActionReducerMapBuilder<EmployeesState>) => {
   });
 };
 
+const addRefreshCases = (builder: ActionReducerMapBuilder<EmployeesState>) => {
+  builder.addCase(refreshEmployees.fulfilled, (state, action) => {
+    state.data = action.payload.data;
+  });
+};
+
 const employeesSlice = createSlice({
   name: "employees",
   initialState,
@@ -87,6 +98,7 @@ const employeesSlice = createSlice({
     addCreateCases(builder);
     addEditCases(builder);
     addDeleteCases(builder);
+    addRefreshCases(builder);
   },
 });
 

@@ -1,14 +1,18 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { Box, CircularProgress, IconButton, InputAdornment, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Tooltip, Typography } from "@mui/material";
+import { useState, useEffect } from "react";
+import { Box, IconButton, InputAdornment, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Tooltip, Typography } from "@mui/material";
+import LoadingView from "./LoadingView";
+import ErrorView from "./ErrorView";
 import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { IEmployee } from "@employee-manager/specs";
 import EditEmployeeDialog from "./EditEmployeeDialog";
 import ConfirmDialog from "./ConfirmDialog";
-import { useAppDispatch, useAppSelector, editEmployee, deleteEmployee, fetchEmployees } from "../redux";
+import { useAppDispatch, useAppSelector, editEmployee, deleteEmployee, fetchEmployees, refreshEmployees } from "../redux";
+import { useDebounce } from "../hooks/useDebounce";
+import { useInterval } from "../hooks/useInterval";
 
 const formatSalary = (amount: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(amount);
 
@@ -20,43 +24,28 @@ export default function EmployeeTable() {
   const dispatch = useAppDispatch();
   const { data: employees, loading, error } = useAppSelector((state) => state.employees);
 
-  useEffect(() => {
-    dispatch(fetchEmployees());
-  }, [dispatch]);
-
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [editTarget, setEditTarget] = useState<IEmployee | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<IEmployee | null>(null);
 
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase();
-    return employees.filter((e) => e.name.toLowerCase().includes(q) || e.email.toLowerCase().includes(q) || e.position.toLowerCase().includes(q));
-  }, [employees, search]);
+  const debouncedSearch = useDebounce(search, 400);
 
-  const paginated = filtered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  useEffect(() => {
+    dispatch(fetchEmployees({ search: debouncedSearch || undefined }));
+    setPage(0);
+  }, [dispatch, debouncedSearch]);
+
+  useInterval(() => {
+    dispatch(refreshEmployees({ search: debouncedSearch || undefined }));
+  }, 20000);
+
+  const paginated = employees.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
-    setPage(0);
   };
-
-  if (loading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Typography color="error" sx={{ py: 4 }}>
-        {error}
-      </Typography>
-    );
-  }
 
   return (
     <Box>
@@ -79,6 +68,11 @@ export default function EmployeeTable() {
         />
       </Paper>
 
+      {loading ? (
+        <LoadingView message="Fetching employees…" />
+      ) : error ? (
+        <ErrorView message={error} />
+      ) : (
       <TableContainer component={Paper} elevation={2}>
         <Table>
           <TableHead>
@@ -125,7 +119,7 @@ export default function EmployeeTable() {
         </Table>
         <TablePagination
           component="div"
-          count={filtered.length}
+          count={employees.length}
           page={page}
           rowsPerPage={rowsPerPage}
           rowsPerPageOptions={ROWS_PER_PAGE_OPTIONS}
@@ -136,6 +130,8 @@ export default function EmployeeTable() {
           }}
         />
       </TableContainer>
+
+      )}
 
       <EditEmployeeDialog
         employee={editTarget}
