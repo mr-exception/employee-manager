@@ -10,6 +10,7 @@ import Typography from "@mui/material/Typography";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
 import ThemeRegistry, { useThemeContext } from "./ThemeRegistry";
+import Toast from "./Toast";
 
 function AppHeader() {
   const { mode, toggle } = useThemeContext();
