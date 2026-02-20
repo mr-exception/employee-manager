@@ -22,6 +22,7 @@ export class SearchEmployeesUseCase {
       query['$or'] = [
         { name: new RegExp(search, 'i') },
         { email: new RegExp(search, 'i') },
+        { position: new RegExp(search, 'i') },
       ];
     }
 
