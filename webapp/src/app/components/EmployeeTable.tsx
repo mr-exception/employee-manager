@@ -1,12 +1,14 @@
-import { useState, useMemo } from "react";
-import { Box, IconButton, InputAdornment, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Tooltip, Typography } from "@mui/material";
+"use client";
+
+import { useState, useMemo, useEffect } from "react";
+import { Box, CircularProgress, IconButton, InputAdornment, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TextField, Tooltip, Typography } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { IEmployee } from "@employee-manager/specs";
 import EditEmployeeDialog from "./EditEmployeeDialog";
 import ConfirmDialog from "./ConfirmDialog";
-import { useAppDispatch, useAppSelector, editEmployee, deleteEmployee } from "../redux";
+import { useAppDispatch, useAppSelector, editEmployee, deleteEmployee, fetchEmployees } from "../redux";
 
 const formatSalary = (amount: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(amount);
 
@@ -16,7 +18,11 @@ const ROWS_PER_PAGE_OPTIONS = [5, 10, 25];
 
 export default function EmployeeTable() {
   const dispatch = useAppDispatch();
-  const employees = useAppSelector((state) => state.employees);
+  const { data: employees, loading, error } = useAppSelector((state) => state.employees);
+
+  useEffect(() => {
+    dispatch(fetchEmployees());
+  }, [dispatch]);
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
@@ -35,6 +41,22 @@ export default function EmployeeTable() {
     setSearch(e.target.value);
     setPage(0);
   };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Typography color="error" sx={{ py: 4 }}>
+        {error}
+      </Typography>
+    );
+  }
 
   return (
     <Box>
