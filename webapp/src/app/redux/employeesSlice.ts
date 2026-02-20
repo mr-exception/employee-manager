@@ -11,12 +11,14 @@ import {
 
 interface EmployeesState {
   data: IEmployee[];
+  totalRecords: number;
   loading: boolean;
   error: string | null;
 }
 
 const initialState: EmployeesState = {
   data: [],
+  totalRecords: 0,
   loading: false,
   error: null,
 };
@@ -57,6 +59,7 @@ const addFetchCases = (builder: ActionReducerMapBuilder<EmployeesState>) => {
     .addCase(fetchEmployees.fulfilled, (state, action) => {
       state.loading = false;
       state.data = action.payload.data;
+      state.totalRecords = action.payload.totalRecords;
     })
     .addCase(fetchEmployees.rejected, (state, action) => {
       state.loading = false;
@@ -86,6 +89,7 @@ const addDeleteCases = (builder: ActionReducerMapBuilder<EmployeesState>) => {
 const addRefreshCases = (builder: ActionReducerMapBuilder<EmployeesState>) => {
   builder.addCase(refreshEmployees.fulfilled, (state, action) => {
     state.data = action.payload.data;
+    state.totalRecords = action.payload.totalRecords;
   });
 };
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Box, IconButton, InputAdornment, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField, Tooltip, Typography } from "@mui/material";
+import { Box, IconButton, InputAdornment, Paper, Skeleton, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField, Tooltip, Typography } from "@mui/material";
 import LoadingView from "./LoadingView";
 import ErrorView from "./ErrorView";
 import SearchIcon from "@mui/icons-material/Search";
@@ -37,7 +37,7 @@ const COLUMNS: Column[] = [
 
 export default function EmployeeTable() {
   const dispatch = useAppDispatch();
-  const { data: employees, loading, error } = useAppSelector((state) => state.employees);
+  const { data: employees, totalRecords, loading, error } = useAppSelector((state) => state.employees);
 
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
@@ -51,14 +51,19 @@ export default function EmployeeTable() {
 
   const params = {
     search: debouncedSearch || undefined,
+    page: page + 1,
+    pageSize: rowsPerPage,
     sortBy,
     sortOrder: sortBy ? sortOrder : undefined,
   };
 
   useEffect(() => {
     dispatch(fetchEmployees(params));
+  }, [dispatch, debouncedSearch, page, rowsPerPage, sortBy, sortOrder]);
+
+  useEffect(() => {
     setPage(0);
-  }, [dispatch, debouncedSearch, sortBy, sortOrder]);
+  }, [debouncedSearch, rowsPerPage, sortBy, sortOrder]);
 
   useInterval(() => {
     dispatch(refreshEmployees(params));
@@ -72,8 +77,6 @@ export default function EmployeeTable() {
       setSortOrder("asc");
     }
   };
-
-  const paginated = employees.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearch(e.target.value);
@@ -100,9 +103,9 @@ export default function EmployeeTable() {
         />
       </Paper>
 
-      {loading ? (
+      {loading && totalRecords === 0 ? (
         <LoadingView message="Fetching employees…" />
-      ) : error ? (
+      ) : error && totalRecords === 0 ? (
         <ErrorView message={error} />
       ) : (
         <TableContainer component={Paper} elevation={2}>
@@ -124,8 +127,19 @@ export default function EmployeeTable() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {paginated.length > 0 ? (
-                paginated.map((emp) => (
+              {loading ? (
+                Array.from({ length: rowsPerPage }).map((_, i) => (
+                  <TableRow key={i}>
+                    {COLUMNS.map((col) => (
+                      <TableCell key={col.field} align={col.align}>
+                        <Skeleton variant="text" />
+                      </TableCell>
+                    ))}
+                    <TableCell><Skeleton variant="text" /></TableCell>
+                  </TableRow>
+                ))
+              ) : employees.length > 0 ? (
+                employees.map((emp) => (
                   <TableRow key={emp._id} hover>
                     <TableCell>{emp.name}</TableCell>
                     <TableCell>{emp.email}</TableCell>
@@ -157,7 +171,7 @@ export default function EmployeeTable() {
           </Table>
           <TablePagination
             component="div"
-            count={employees.length}
+            count={totalRecords}
             page={page}
             rowsPerPage={rowsPerPage}
             rowsPerPageOptions={ROWS_PER_PAGE_OPTIONS}
