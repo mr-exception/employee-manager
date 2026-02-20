@@ -5,7 +5,10 @@ import { IEmployee } from '@employee-manager/specs';
 
 export type EmployeeDocument = HydratedDocument<Employee>;
 
-@Schema({ collection: 'employees', timestamps: { currentTime: () => Date.now() } })
+@Schema({
+  collection: 'employees',
+  timestamps: { currentTime: () => Date.now() },
+})
 export class Employee implements IEmployee {
   @Prop({ type: String, default: () => randomUUID() })
   _id: string;
@@ -22,10 +25,10 @@ export class Employee implements IEmployee {
   @Prop({ required: true })
   salary: number;
 
-  @Prop()
+  @Prop({ default: Date.now })
   createdAt: number;
 
-  @Prop()
+  @Prop({ default: Date.now })
   updatedAt: number;
 }
 
