@@ -13,6 +13,7 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
+import Toast from "./Toast";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<"light" | "dark">("light");
@@ -38,6 +39,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
             {children}
           </Box>
           <div id="modal-root" />
+          <Toast />
         </ThemeProvider>
       </AppRouterCacheProvider>
     </ReduxProvider>
