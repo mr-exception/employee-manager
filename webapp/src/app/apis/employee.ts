@@ -5,10 +5,15 @@ const client = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
 });
 
+export type SortOrder = "asc" | "desc";
+export type SortBy = "name" | "email" | "position" | "salary" | "updatedAt";
+
 export interface SearchEmployeesParams {
   search?: string;
   page?: number;
   pageSize?: number;
+  sortBy?: SortBy;
+  sortOrder?: SortOrder;
 }
 
 export type CreateEmployeePayload = Omit<IEmployee, "_id" | "createdAt" | "updatedAt">;
