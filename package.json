@@ -1,0 +1,19 @@
+{
+  "name": "employee-manager",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "api",
+    "webapp"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=api\" \"npm run dev --workspace=webapp\"",
+    "dev:api": "npm run dev --workspace=api",
+    "dev:webapp": "npm run dev --workspace=webapp",
+    "build": "npm run build --workspace=api && npm run build --workspace=webapp",
+    "lint": "npm run lint --workspace=api && npm run lint --workspace=webapp"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}
