@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Box, IconButton, InputAdornment, Paper, Skeleton, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, TableSortLabel, TextField, Tooltip, Typography } from "@mui/material";
-import LoadingView from "./LoadingView";
+import { Box, IconButton, InputAdornment, Paper, TextField, Tooltip, Typography } from "@mui/material";
+import { DataGrid, GridColDef, GridSortModel } from "@mui/x-data-grid";
 import ErrorView from "./ErrorView";
 import SearchIcon from "@mui/icons-material/Search";
 import EditIcon from "@mui/icons-material/Edit";
@@ -15,72 +15,94 @@ import { useDebounce } from "../hooks/useDebounce";
 import { useInterval } from "../hooks/useInterval";
 import { SortBy, SortOrder } from "../apis/employee";
 
-const formatSalary = (amount: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(amount);
+const formatSalary = (amount: number) =>
+  new Intl.NumberFormat("en-US", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(amount);
 
-const formatDate = (ts: number) => new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short" }).format(new Date(ts));
-
-const ROWS_PER_PAGE_OPTIONS = [5, 10, 25];
-
-interface Column {
-  label: string;
-  field: SortBy;
-  align?: "right";
-}
-
-const COLUMNS: Column[] = [
-  { label: "Name", field: "name" },
-  { label: "Email", field: "email" },
-  { label: "Position", field: "position" },
-  { label: "Salary", field: "salary", align: "right" },
-  { label: "Last Updated At", field: "updatedAt" },
-];
+const formatDate = (ts: number) =>
+  new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short" }).format(new Date(ts));
 
 export default function EmployeeTable() {
   const dispatch = useAppDispatch();
   const { data: employees, totalRecords, loading, error } = useAppSelector((state) => state.employees);
 
   const [search, setSearch] = useState("");
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [sortBy, setSortBy] = useState<SortBy | undefined>(undefined);
-  const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 5 });
+  const [sortModel, setSortModel] = useState<GridSortModel>([]);
   const [editTarget, setEditTarget] = useState<IEmployee | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<IEmployee | null>(null);
 
   const debouncedSearch = useDebounce(search, 400);
 
+  const sortBy = sortModel[0]?.field as SortBy | undefined;
+  const sortOrder = (sortModel[0]?.sort ?? "asc") as SortOrder;
+
   const params = {
     search: debouncedSearch || undefined,
-    page: page + 1,
-    pageSize: rowsPerPage,
+    page: paginationModel.page + 1,
+    pageSize: paginationModel.pageSize,
     sortBy,
     sortOrder: sortBy ? sortOrder : undefined,
   };
 
   useEffect(() => {
     dispatch(fetchEmployees(params));
-  }, [dispatch, debouncedSearch, page, rowsPerPage, sortBy, sortOrder]);
+  }, [dispatch, debouncedSearch, paginationModel.page, paginationModel.pageSize, sortBy, sortOrder]);
 
   useEffect(() => {
-    setPage(0);
-  }, [debouncedSearch, rowsPerPage, sortBy, sortOrder]);
+    setPaginationModel((prev) => ({ ...prev, page: 0 }));
+  }, [debouncedSearch]);
 
   useInterval(() => {
     dispatch(refreshEmployees(params));
   }, 20000);
 
-  const handleSort = (field: SortBy) => {
-    if (sortBy === field) {
-      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
-    } else {
-      setSortBy(field);
-      setSortOrder("asc");
-    }
+  const handleSortChange = (model: GridSortModel) => {
+    setSortModel(model);
+    setPaginationModel((prev) => ({ ...prev, page: 0 }));
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-  };
+  const columns: GridColDef<IEmployee>[] = [
+    { field: "name", headerName: "Name", flex: 1, minWidth: 150 },
+    { field: "email", headerName: "Email", flex: 1, minWidth: 200 },
+    { field: "position", headerName: "Position", flex: 1, minWidth: 150 },
+    {
+      field: "salary",
+      headerName: "Salary",
+      flex: 1,
+      minWidth: 120,
+      align: "right",
+      headerAlign: "right",
+      valueFormatter: (value: number) => formatSalary(value),
+    },
+    {
+      field: "updatedAt",
+      headerName: "Last Updated At",
+      flex: 1,
+      minWidth: 180,
+      valueFormatter: (value: number) => formatDate(value),
+    },
+    {
+      field: "actions",
+      headerName: "",
+      sortable: false,
+      width: 90,
+      align: "right",
+      renderCell: ({ row }) => (
+        <>
+          <Tooltip title="Edit">
+            <IconButton size="small" onClick={() => setEditTarget(row)}>
+              <EditIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Remove">
+            <IconButton size="small" color="error" onClick={() => setDeleteTarget(row)}>
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </>
+      ),
+    },
+  ];
 
   return (
     <Box>
@@ -89,7 +111,7 @@ export default function EmployeeTable() {
           fullWidth
           placeholder="Search by name, email or position…"
           value={search}
-          onChange={handleSearchChange}
+          onChange={(e) => setSearch(e.target.value)}
           size="small"
           slotProps={{
             input: {
@@ -103,85 +125,36 @@ export default function EmployeeTable() {
         />
       </Paper>
 
-      {loading && totalRecords === 0 ? (
-        <LoadingView message="Fetching employees…" />
-      ) : error && totalRecords === 0 ? (
+      {error && totalRecords === 0 ? (
         <ErrorView message={error} />
       ) : (
-        <TableContainer component={Paper} elevation={2}>
-          <Table>
-            <TableHead>
-              <TableRow sx={{ "& th": { fontWeight: 700 } }}>
-                {COLUMNS.map((col) => (
-                  <TableCell key={col.field} align={col.align}>
-                    <TableSortLabel
-                      active={sortBy === col.field}
-                      direction={sortBy === col.field ? sortOrder : "asc"}
-                      onClick={() => handleSort(col.field)}
-                    >
-                      {col.label}
-                    </TableSortLabel>
-                  </TableCell>
-                ))}
-                <TableCell />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {loading ? (
-                Array.from({ length: rowsPerPage }).map((_, i) => (
-                  <TableRow key={i}>
-                    {COLUMNS.map((col) => (
-                      <TableCell key={col.field} align={col.align}>
-                        <Skeleton variant="text" />
-                      </TableCell>
-                    ))}
-                    <TableCell><Skeleton variant="text" /></TableCell>
-                  </TableRow>
-                ))
-              ) : employees.length > 0 ? (
-                employees.map((emp) => (
-                  <TableRow key={emp._id} hover>
-                    <TableCell>{emp.name}</TableCell>
-                    <TableCell>{emp.email}</TableCell>
-                    <TableCell>{emp.position}</TableCell>
-                    <TableCell align="right">{formatSalary(emp.salary)}</TableCell>
-                    <TableCell>{formatDate(emp.updatedAt)}</TableCell>
-                    <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
-                      <Tooltip title="Edit">
-                        <IconButton size="small" onClick={() => setEditTarget(emp)}>
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Remove">
-                        <IconButton size="small" color="error" onClick={() => setDeleteTarget(emp)}>
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
-                    <Typography color="text.secondary">No employees found.</Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-          <TablePagination
-            component="div"
-            count={totalRecords}
-            page={page}
-            rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={ROWS_PER_PAGE_OPTIONS}
-            onPageChange={(_, newPage) => setPage(newPage)}
-            onRowsPerPageChange={(e) => {
-              setRowsPerPage(parseInt(e.target.value, 10));
-              setPage(0);
+        <Paper elevation={2}>
+          <DataGrid
+            rows={employees}
+            columns={columns}
+            getRowId={(row) => row._id}
+            loading={loading}
+            rowCount={totalRecords}
+            paginationMode="server"
+            sortingMode="server"
+            paginationModel={paginationModel}
+            onPaginationModelChange={setPaginationModel}
+            sortModel={sortModel}
+            onSortModelChange={handleSortChange}
+            pageSizeOptions={[5, 10, 25]}
+            disableRowSelectionOnClick
+            disableColumnFilter
+            disableColumnMenu
+            slots={{
+              noRowsOverlay: () => (
+                <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+                  <Typography color="text.secondary">No employees found.</Typography>
+                </Box>
+              ),
             }}
+            sx={{ border: 0 }}
           />
-        </TableContainer>
+        </Paper>
       )}
 
       <EditEmployeeDialog
@@ -194,7 +167,13 @@ export default function EmployeeTable() {
         }}
       />
 
-      <ConfirmDialog open={deleteTarget !== null} title="Remove Employee" message={`Are you sure you want to remove ${deleteTarget?.name}? This action cannot be undone.`} onConfirm={() => dispatch(deleteEmployee(deleteTarget!._id))} onClose={() => setDeleteTarget(null)} />
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title="Remove Employee"
+        message={`Are you sure you want to remove ${deleteTarget?.name}? This action cannot be undone.`}
+        onConfirm={() => dispatch(deleteEmployee(deleteTarget!._id))}
+        onClose={() => setDeleteTarget(null)}
+      />
     </Box>
   );
 }
