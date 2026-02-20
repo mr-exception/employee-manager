@@ -3,7 +3,7 @@ import { HydratedDocument } from 'mongoose';
 import { randomUUID } from 'crypto';
 import { IEmployee } from '@employee-manager/specs';
 
-export type EmployeeDocument = HydratedDocument<Employee>;
+export type EmployeeDocument = HydratedDocument<Employee> & IEmployee;
 
 @Schema({
   collection: 'employees',
